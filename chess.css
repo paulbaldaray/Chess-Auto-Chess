@@ -1,8 +1,19 @@
 .board {
+	margin: auto auto;
+}
+
+.board-title {
+}
+
+.board-border {
 	width: 400px;
 	height: 400px;
-	margin: 20px;
 	border: 5px solid #222;
+}
+
+.board-button {
+	width: 100px;
+	margin: 10 auto;
 }
 
 .square {

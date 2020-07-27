@@ -2,18 +2,16 @@ const EMPTY = 0, WP = 1, WN = 2, WB = 3, WR = 4, WQ = 5, WK = 6,
 	BP = 7, BN = 8, BB = 9, BR = 10, BQ = 11, BK = 12;
 
 // One liner functions
-const randInt = (start, size) =>
-	Math.floor(Math.random() * size) + start;
-const isNotSame = (board, row, col, isWhite) =>
-	board[row][col] == EMPTY || (board[row][col] < BP) != (isWhite);
-const isInBounds = (row, col) =>
+const notSame = (piece, isWhite) =>
+	piece == EMPTY || (piece < BP) != (isWhite);
+const inBounds = (row, col) =>
 	0 <= row && row < 8 && 0 <= col && col < 8;
 
 function pMoves(board, row, col, isWhite) {
 	let moves = [];
 	const forward = (isWhite ? 1 : -1);
 	let r = row + forward, c = col;
-	if (isInBounds(r, c) && board[r][c] == EMPTY) {
+	if (inBounds(r, c) && board[r][c] == EMPTY) {
 		moves.push([r, c]);
 		r += forward;
 		if (row == 6-5*isWhite && board[r][c] == EMPTY)
@@ -21,8 +19,8 @@ function pMoves(board, row, col, isWhite) {
 	}
 	for (let i = 0; i < 2; ++i) {
 		r = row + forward, c = col + (i ? -1 : 1);
-		if (isInBounds(r, c) && board[r][c] != EMPTY
-				&& isNotSame(board, r, c, isWhite))
+		if (inBounds(r, c) && board[r][c] != EMPTY
+				&& notSame(board[r][c], isWhite))
 			moves.push([r, c]);
 	}
 	return moves;
@@ -37,7 +35,7 @@ function nMoves(board, row, col, isWhite) {
 			if (colFirst)
 				[r, c] = [c, r];
 			r += row, c += col;
-			if (isInBounds(r, c) && isNotSame(board, r, c, isWhite))
+			if (inBounds(r, c) && notSame(board[r][c], isWhite))
 				moves.push([r, c]);
 		}
 	return moves;
@@ -50,9 +48,9 @@ function dirMoves(board, row, col, isWhite, directions, distance) {
 			continue;
 		let r = row + 1-i, c = col + j-1;
 		for (let k = 0; k < distance; ++k, r += 1-i, c += j-1) {
-			if (!isInBounds(r, c))
+			if (!inBounds(r, c))
 				break;
-			if (isNotSame(board, r, c, isWhite))
+			if (notSame(board[r][c], isWhite))
 				moves.push([r, c]);
 			if (board[r][c] != EMPTY)
 				break;
@@ -62,27 +60,18 @@ function dirMoves(board, row, col, isWhite, directions, distance) {
 }
 
 const DDIR = [[1, 0, 1], [0, 0, 0], [1, 0, 1]];
-function bMoves(board, row, col, isWhite) {
-	return dirMoves(board, row, col, isWhite, DDIR, 7);
-}
-
 const HDIR = [[0, 1, 0], [1, 0, 1], [0, 1, 0]];
-function rMoves(board, row, col, isWhite) {
-	return moves = dirMoves(board, row, col, isWhite, HDIR, 7);
-}
-
 const ADIR = [[1, 1, 1], [1, 0, 1], [1, 1, 1]];
-function qMoves(board, row, col, isWhite) {
-	return dirMoves(board, row, col, isWhite, ADIR, 7);
-}
-
-function kMoves(board, row, col, isWhite) {
-	return moves = dirMoves(board, row, col, isWhite, ADIR, 1);
-}
-
-const MOVES = [pMoves, nMoves, bMoves, rMoves, qMoves, kMoves];
 function genMoves(board, row, col, isWhite, type) {
-	return MOVES[type-1](board, row, col, isWhite);
+	switch (type) {
+		case WP: return pMoves(board, row, col, isWhite);
+		case WN: return nMoves(board, row, col, isWhite);
+		case WB: return dirMoves(board, row, col, isWhite, DDIR, 7);
+		case WR: return dirMoves(board, row, col, isWhite, HDIR, 7);
+		case WQ: return dirMoves(board, row, col, isWhite, ADIR, 7);
+		case WK: return dirMoves(board, row, col, isWhite, ADIR, 1);
+		default: return [];
+	}
 }
 
 function inCheck(board, isWhite) {
@@ -113,7 +102,7 @@ function buildBoard() {
 	return board;
 }
 
-const BACKRANK = [ WR, WN, WB, WQ, WK, WB, WN, WR ];
+const BACKRANK = [WR, WN, WB, WQ, WK, WB, WN, WR];
 function defaultBoard() {
 	let board = buildBoard();
 	board[0] = [...BACKRANK];
@@ -125,19 +114,15 @@ function defaultBoard() {
 	return board;
 }
 
-let SQUARES = Array(64);
-for (let i = 0; i < 64; ++i)
-	SQUARES[i] = [Math.floor(i/8), Math.floor(i%8)];
 function randomize(arr) {
 	for (let i = arr.length - 1;  i > 0; --i) {
-		const j = randInt(0, i + 1);
+		const j = Math.floor(Math.random() * (i+1));
 		[arr[i], arr[j]] = [arr[j], arr[i]];
 	}
 	return arr;
 }
 
-function randomMove(board, isWhite) {
-	let squares = randomize(SQUARES);
+function randomMove(board, isWhite, squares) {
 	for (let i = 0; i < squares.length; ++i) {
 		let r = squares[i][0], c = squares[i][1];
 		if (board[r][c] == EMPTY || (board[r][c] < BP) != isWhite)
@@ -151,7 +136,7 @@ function randomMove(board, isWhite) {
 			let captured = board[rd][cd], piece = board[r][c];
 			board[rd][cd] = piece;
 			if ((rd == 0 || rd == 7) && type == WP)
-				board[rd][cd] = randInt((isWhite ? 2 : 8), 4);
+				board[rd][cd] = Math.floor(Math.random() * 4) + (isWhite ? 2 : 8);
 			board[r][c] = EMPTY;
 			if (inCheck(board, isWhite))
 				board[rd][cd] = captured, board[r][c] = piece;
@@ -193,14 +178,16 @@ function loadBoard(board) {
 async function play() {
 	let board = defaultBoard();
 	let turn = 1;
-	while (!isDraw(board) && randomMove(board, turn))  {
+	let squares = Array(64);
+	for (let i = 0; i < 64; ++i)
+		squares[i] = [Math.floor(i/8), i%8];
+	for (randomize(squares); !isDraw(board) && randomMove(board, turn, squares); turn ^= 1)  {
 		loadBoard(board);
-		await new Promise(r => setTimeout(r, 0));
-		turn ^= 1;
+		randomize(squares);
+		await new Promise(r => setTimeout(r, 250));
 	}
-	if (inCheck(board, 0)) console.log("White Wins");
-	else if (inCheck(board, 1)) console.log("Black Wins");
-	else console.log("Stalemate");
+	const result = inCheck(board, 0) ? "White Wins": inCheck(board, 1) ? "Black Wins": "Stalemate";
+	document.querySelector('.board-title').innerHTML = result;
 }
 
 play();
