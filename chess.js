@@ -132,7 +132,7 @@ function makeMove(board, move) {
 		board[r2][c2] = promote;
 }
 
-function randomMove(board, isWhite, hist) {
+function randomMove(board, hist, isWhite) {
 	let moves = [];
 	for (let r = 0; r < 8; ++r) for (let c = 0; c < 8; ++c) {
 		if (board[r][c] == EMPTY || (board[r][c] < BP) != isWhite)
@@ -170,7 +170,7 @@ function isDraw(board) {
 			default: return false;
 		}
 	for (let w = 0; w < 2; ++w)
-		if ((pieces[w][0] > 1 && (pieces[x^1][1] || pieces[x^1][2]))
+		if ((pieces[w][0] > 1 && (pieces[w^1][1] || pieces[w^1][2]))
 				|| (pieces[w][1] > 2 || pieces[w][2] > 1)
 				|| (pieces[w][1] && pieces[w][2]))
 			return false;
@@ -189,21 +189,32 @@ function loadBoard(board) {
 	}
 }
 
+const TURN = ['Black to move.', 'White to move.'];
 const RESULTS =['Stalemate...', 'Black Wins!', 'White Wins!'];
-let gameBoard, gameHistory, gamePosition, gameResult;
+let gameBoard, gameHistory, gamePosition, gameResult, gameTurn;
 let gameRunning = false, gamePaused = true, pauseConfirm = false;
 let maxDelay = 2048, gameDelay = 128;
+
+function simulate() {
+	let board = buildBoard();
+	for (let r = 0; r < 8; ++r) for(let c = 0; c < 8; ++c)
+		board[r][c] = gameBoard[r][c];
+	gameHistory = [];
+	gamePosition = 0;
+	let turn = gameTurn;
+	while (!isDraw(board) && randomMove(board, gameHistory, turn))
+		turn ^=1;
+	gameResult = inCheck(board, 0) ? 2 : inCheck(board, 1) ? 1 : 0;
+}
+
 function reset() {
-	if (!gamePaused)
+	if (gameRunning)
 		return;
-	document.querySelector('.title').innerHTML = 'Game!';
+	document.getElementById('title').innerHTML = 'Start the game!';
+	gameTurn = 1;
 	gameBoard = defaultBoard();
 	loadBoard(gameBoard);
-	gamePosition = 0;
-	gameHistory = [];
-	for (let x = 1; !isDraw(gameBoard) && randomMove(gameBoard, x, gameHistory); x^=1);
-	gameResult = inCheck(gameBoard, 0) ? 2 : inCheck(gameBoard, 1) ? 1 : 0;
-	gameBoard = defaultBoard();
+	simulate();
 }
 
 async function run() {
@@ -215,17 +226,20 @@ async function run() {
 		}
 		ready = 1;
 		makeMove(gameBoard, gameHistory[gamePosition]);
+		gameTurn ^= 1;
 		loadBoard(gameBoard);
 		await new Promise(r => setTimeout(r, gameDelay));
 	}
 	gamePaused = true;
 	document.getElementById('play').innerHTML = '►';
 	if (gameRunning)
-		document.querySelector('.title').innerHTML = RESULTS[gameResult];
+		document.getElementById('title').innerHTML = RESULTS[gameResult];
 	gameRunning = false;
 }
 
 function play() {
+	let message = (gamePaused ? '' : TURN[gameTurn]);
+	document.getElementById('title').innerHTML = message;
 	gamePaused = !gamePaused;
 	let icon = gamePaused ? '►' : '❚❚';
 	document.getElementById('play').innerHTML = icon;
@@ -236,6 +250,8 @@ function play() {
 function prev() {
 	if (gameRunning || gamePosition == 0)
 		return;
+	gameTurn ^= 1;
+	document.getElementById('title').innerHTML = TURN[gameTurn];
 	undoMove(gameBoard, gameHistory[--gamePosition]);
 	loadBoard(gameBoard);
 }
@@ -243,6 +259,8 @@ function prev() {
 function next() {
 	if (gameRunning || gamePosition == gameHistory.length)
 		return;
+	gameTurn ^= 1;
+	document.getElementById('title').innerHTML = TURN[gameTurn];
 	makeMove(gameBoard, gameHistory[gamePosition++]);
 	loadBoard(gameBoard);
 }
@@ -261,8 +279,41 @@ function slow() {
 		= 'speed: ' + (12-Math.log2(gameDelay));
 }
 
-function main() {
-	reset();
+let pieceToChange = EMPTY;
+function changePiece(image) {
+	if (gameRunning)
+		return;
+	let [sr, sc] = image.id.split('');
+	let c = sr.charCodeAt(0) - 65, r = sc - 1;
+	let saved = gameBoard[r][c];
+	gameBoard[r][c] = pieceToChange;
+	if (inCheck(gameBoard, gameTurn^1)) {
+		gameBoard[r][c] = saved;
+		return;
+	}
+	loadBoard(gameBoard);
+	simulate();
 }
 
-main();
+function changeSelected(pieceName) {
+	pieceToChange = eval(pieceName);
+	let selectors = document.getElementsByClassName('selector');
+	for (let i = 0; i < selectors.length; ++i)
+		selectors[i].style.backgroundColor = 'transparent';
+	document.getElementById(pieceName).style.backgroundColor = 'grey';
+}
+
+function setup() {
+	let squares = document.getElementsByClassName('square');
+	for (let i = 0; i < squares.length; ++i) {
+		let images = squares[i].getElementsByClassName('piece');
+		squares[i].addEventListener('click', () => changePiece(images[0]));
+	}
+	let selectors = document.getElementsByClassName('selector');
+	for (let i = 0; i < selectors.length; ++i)
+		selectors[i].addEventListener('click', () => changeSelected(selectors[i].id));
+	document.getElementById('EMPTY').style.backgroundColor = 'grey';
+}
+
+setup();
+reset();

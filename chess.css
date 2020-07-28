@@ -1,21 +1,34 @@
-.board {
-	margin: auto auto;
-}
-
-.border {
+#border {
 	width: 400px;
 	height: 400px;
 	border: 5px solid #222;
+}
+
+#title {
+	height: 20px;
 }
 
 button {
 	width: 50px;
 	height: 30px;
 	float: left;
-	margin: 5px 0;
+	margin: 5px 0px;
   background-color: #555;
-  color: #fff;
-	text-align: center;
+}
+
+button:hover {
+	background-color: #777777;
+}
+
+.selector {
+	float: left;
+	width: 30px;
+	height: 30px;
+}
+
+.selector:hover {
+	width: 40px;
+	height: 40px;
 }
 
 .square {
@@ -49,6 +62,7 @@ img[src] {
 .black {
 	background-color: #777;
 }
+
 .white {
 	background-color: #fff;
 }
