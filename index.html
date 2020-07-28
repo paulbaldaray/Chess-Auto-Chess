@@ -2,84 +2,33 @@
 
 <head>
 <meta charset="UTF-8"> 
-<title>MemChess</title>
+<title>Chess AutoChess</title>
 <link rel="stylesheet" type="text/css" href="chess.css">
 </head>
 
 <body>
-
 <div class="board">
-	<h2 class="board-title">Game!</h2>
-	<div class="board-border">
-		<div class="square white" id="A8"></div>
-		<div class="square black" id="B8"></div>
-		<div class="square white" id="C8"></div>
-		<div class="square black" id="D8"></div>
-		<div class="square white" id="E8"></div>
-		<div class="square black" id="F8"></div>
-		<div class="square white" id="G8"></div>
-		<div class="square black" id="H8"></div>
-		<div class="square black" id="A7"></div>
-		<div class="square white" id="B7"></div>
-		<div class="square black" id="C7"></div>
-		<div class="square white" id="D7"></div>
-		<div class="square black" id="E7"></div>
-		<div class="square white" id="F7"></div>
-		<div class="square black" id="G7"></div>
-		<div class="square white" id="H7"></div>
-		<div class="square white" id="A6"></div>
-		<div class="square black" id="B6"></div>
-		<div class="square white" id="C6"></div>
-		<div class="square black" id="D6"></div>
-		<div class="square white" id="E6"></div>
-		<div class="square black" id="F6"></div>
-		<div class="square white" id="G6"></div>
-		<div class="square black" id="H6"></div>
-		<div class="square black" id="A5"></div>
-		<div class="square white" id="B5"></div>
-		<div class="square black" id="C5"></div>
-		<div class="square white" id="D5"></div>
-		<div class="square black" id="E5"></div>
-		<div class="square white" id="F5"></div>
-		<div class="square black" id="G5"></div>
-		<div class="square white" id="H5"></div>
-		<div class="square white" id="A4"></div>
-		<div class="square black" id="B4"></div>
-		<div class="square white" id="C4"></div>
-		<div class="square black" id="D4"></div>
-		<div class="square white" id="E4"></div>
-		<div class="square black" id="F4"></div>
-		<div class="square white" id="G4"></div>
-		<div class="square black" id="H4"></div>
-		<div class="square black" id="A3"></div>
-		<div class="square white" id="B3"></div>
-		<div class="square black" id="C3"></div>
-		<div class="square white" id="D3"></div>
-		<div class="square black" id="E3"></div>
-		<div class="square white" id="F3"></div>
-		<div class="square black" id="G3"></div>
-		<div class="square white" id="H3"></div>
-		<div class="square white" id="A2"></div>
-		<div class="square black" id="B2"></div>
-		<div class="square white" id="C2"></div>
-		<div class="square black" id="D2"></div>
-		<div class="square white" id="E2"></div>
-		<div class="square black" id="F2"></div>
-		<div class="square white" id="G2"></div>
-		<div class="square black" id="H2"></div>
-		<div class="square black" id="A1"></div>
-		<div class="square white" id="B1"></div>
-		<div class="square black" id="C1"></div>
-		<div class="square white" id="D1"></div>
-		<div class="square black" id="E1"></div>
-		<div class="square white" id="F1"></div>
-		<div class="square black" id="G1"></div>
-		<div class="square white" id="H1"></div>
-	</div>
-<button class="board-button" id="board-prev"><-</button>
-<button class="board-button" id="board-next">-></button>
+	<h2 class="title"></h2>
+	<div class="border"></div>
+	<script>
+	for (let r = 7, x = 0; r >= 0; --r, x ^= 1) for (c = 0; c < 8; ++c, x ^= 1) {
+		let tile = document.createElement('div');
+		let piece = document.createElement('img');
+		tile.className = 'square ' + ['white', 'black'][x];
+		piece.className = "piece";
+		piece.id = 'ABCDEFGH'[c] + (r+1);
+		tile.appendChild(piece);
+		document.querySelector('.border').appendChild(tile);
+	}</script>
+	<button onclick="reset()">⟳</button>
+	<button onclick="prev()">🡄</button>
+	<button id="play" onclick="play()">►</button>
+	<button onclick="next()">🡆</button>
+	<button onclick="slow()">▼</button>
+	<button onclick="speed()">▲</button>
+	<span id="speedText">speed: 5</span>
 </div>
-
 <script src="chess.js"></script>
 </body>
+
 </html>

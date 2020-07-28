@@ -14,7 +14,7 @@ function pMoves(board, row, col, isWhite) {
 	if (inBounds(r, c) && board[r][c] == EMPTY) {
 		moves.push([r, c]);
 		r += forward;
-		if (row == 6-5*isWhite && board[r][c] == EMPTY)
+		if (row == (isWhite ? 1 : 6) && board[r][c] == EMPTY)
 			moves.push([r, c]);
 	}
 	for (let i = 0; i < 2; ++i) {
@@ -76,18 +76,16 @@ function genMoves(board, row, col, isWhite, type) {
 
 function inCheck(board, isWhite) {
 	let row, col;
-	outer:
-	for (row = 0; row < 8; ++row) for (col = 0; col < 8; ++col)
-		if (board[row][col] == WK + (isWhite ? 0 : 6))
-			break outer;
-	if (row == 8)
-		return true;
-	for (let piece = WP; piece <= WK; ++piece) {
-		let moves = genMoves(board, row, col, isWhite, piece);
-		let attacker = piece + (isWhite ? 6 : 0);
-		for (let i = 0; i < moves.length; ++i)
-			if (board[moves[i][0]][moves[i][1]] == attacker)
-				return true;
+	for (row = 0; row < 8; ++row) for (col = 0; col < 8; ++col) {
+		if (board[row][col] != WK + (isWhite ? 0 : 6))
+			continue;
+		for (let piece = WP; piece <= WK; ++piece) {
+			let moves = genMoves(board, row, col, isWhite, piece);
+			let attacker = piece + (isWhite ? 6 : 0);
+			for (let i = 0; i < moves.length; ++i)
+				if (board[moves[i][0]][moves[i][1]] == attacker)
+					return true;
+		}
 	}
 	return false;
 }
@@ -122,72 +120,149 @@ function randomize(arr) {
 	return arr;
 }
 
-function randomMove(board, isWhite, squares) {
-	for (let i = 0; i < squares.length; ++i) {
-		let r = squares[i][0], c = squares[i][1];
+function undoMove(board, move) {
+	let [r1, c1, r2, c2, p1, p2, promote] = move;
+	board[r1][c1] = p1, board[r2][c2] = p2;
+}
+
+function makeMove(board, move) {
+	let [r1, c1, r2, c2, p1, p2, promote] = move;
+	board[r2][c2] = p1, board[r1][c1] = EMPTY;
+	if ((r2 == 0 || r2 == 7) && (p1 == WP || p1 == BP))
+		board[r2][c2] = promote;
+}
+
+function randomMove(board, isWhite, hist) {
+	let moves = [];
+	for (let r = 0; r < 8; ++r) for (let c = 0; c < 8; ++c) {
 		if (board[r][c] == EMPTY || (board[r][c] < BP) != isWhite)
 			continue;
-		let type = board[r][c] - (isWhite ? 0 : 6);
-		let moves = randomize(genMoves(board, r, c, isWhite, type));
-		if (moves.length == 0)
-			continue;
-		for (let j = 0; j < moves.length; ++j) {
-			let rd = moves[j][0], cd = moves[j][1];
-			let captured = board[rd][cd], piece = board[r][c];
-			board[rd][cd] = piece;
-			if ((rd == 0 || rd == 7) && type == WP)
-				board[rd][cd] = Math.floor(Math.random() * 4) + (isWhite ? 2 : 8);
-			board[r][c] = EMPTY;
-			if (inCheck(board, isWhite))
-				board[rd][cd] = captured, board[r][c] = piece;
-			else
-				return true;
-		}
+		let dest = genMoves(board, r, c, isWhite, board[r][c] - (isWhite ? 0 : 6));
+		for (let j = 0; j < dest.length; ++j)
+			moves.push([r, c].concat(dest[j]));
+	}
+	randomize(moves);
+	for (let j = 0; j < moves.length; ++j) {
+		let [r1, c1, r2, c2] = moves[j];
+		let promote = Math.floor(Math.random() * 4) + (isWhite ? 2 : 8);
+		hist.push([r1, c1, r2, c2, board[r1][c1], board[r2][c2], promote]);
+		makeMove(board, hist[hist.length-1]);
+		if (!inCheck(board, isWhite))
+			return true;
+		undoMove(board, hist.pop());
 	}
 	return false;
 }
 
 function isDraw(board) {
-	let wbset = 0, bbset = 0;
-	for (let r = 0; r < 8; ++r) for (let c = 0; c < 8; ++c) {
-		const isWhite = board[r][c] < BP;
-		const type = board[r][c] - (isWhite ? 0 : 6);
-		let bset = (isWhite ? wbset : bbset);
-		switch (type) {
-			case WN: bset += (1 << 0); break;
-			case WB: bset += (1 << 2); break;
-			case EMPTY: case WK: continue;
+	if (inCheck(board, 0) || inCheck(board, 1))
+		return false;
+	let pieces = [[0, 0, 0], [0, 0, 0]]
+	for (let r = 0; r < 8; ++r) for (let c = 0; c < 8; ++c)
+		switch(board[r][c]) {
+			case WK: ++pieces[0][0]; continue;
+			case WN: ++pieces[0][1]; continue;
+			case WB: ++pieces[0][2]; continue;
+			case BK: ++pieces[1][0]; continue;
+			case BN: ++pieces[1][1]; continue;
+			case BB: ++pieces[1][2]; continue;
+			case EMPTY: continue;
 			default: return false;
 		}
-	}
-	return (wbset < 3 || wbset == 4 || wbset == 8)
-		&& (bbset < 3 || bbset == 4 || bbset == 8);
+	for (let w = 0; w < 2; ++w)
+		if ((pieces[w][0] > 1 && (pieces[x^1][1] || pieces[x^1][2]))
+				|| (pieces[w][1] > 2 || pieces[w][2] > 1)
+				|| (pieces[w][1] && pieces[w][2]))
+			return false;
+	return true;
 }
 
-const UNI = [
-	'','&#9817;','&#9816;','&#9815;','&#9814;','&#9813;','&#9812;',
-	'&#9823;','&#9822;','&#9821;','&#9820;','&#9819;','&#9818;',
-];
+const IMG = ["0", "WP", "WN", "WB", "WR", "WQ", "WK",
+	"BP", "BN", "BB", "BR", "BQ", "BK"];
 function loadBoard(board) {
 	for (let r = 0; r < 8; ++r) for (let c = 0; c < 8; ++c) {
-		const id = '#' + 'ABCDEFGH'[c] + (r+1);
-		document.querySelector(id).innerHTML = UNI[board[r][c]];
+		const id = 'ABCDEFGH'[c] + (r+1);
+		if (board[r][c] != EMPTY)
+			document.getElementById(id).src = "img/" + IMG[board[r][c]] + ".png";
+		else
+			document.getElementById(id).removeAttribute('src');
 	}
 }
 
-async function play() {
-	let board = defaultBoard();
-	let turn = 1;
-	let squares = Array(64);
-	for (let i = 0; i < 64; ++i)
-		squares[i] = [Math.floor(i/8), i%8];
-	for (randomize(squares); !isDraw(board) && randomMove(board, turn, squares); turn ^= 1)  {
-		loadBoard(board);
-		randomize(squares);
-		await new Promise(r => setTimeout(r, 250));
-	}
-	const result = inCheck(board, 0) ? "White Wins": inCheck(board, 1) ? "Black Wins": "Stalemate";
-	document.querySelector('.board-title').innerHTML = result;
+const RESULTS =['Stalemate...', 'Black Wins!', 'White Wins!'];
+let gameBoard, gameHistory, gamePosition, gameResult;
+let gameRunning = false, gamePaused = true, pauseConfirm = false;
+let maxDelay = 2048, gameDelay = 128;
+function reset() {
+	if (!gamePaused)
+		return;
+	document.querySelector('.title').innerHTML = 'Game!';
+	gameBoard = defaultBoard();
+	loadBoard(gameBoard);
+	gamePosition = 0;
+	gameHistory = [];
+	for (let x = 1; !isDraw(gameBoard) && randomMove(gameBoard, x, gameHistory); x^=1);
+	gameResult = inCheck(gameBoard, 0) ? 2 : inCheck(gameBoard, 1) ? 1 : 0;
+	gameBoard = defaultBoard();
 }
 
-play();
+async function run() {
+	gameRunning = true;
+	for (; gamePosition < gameHistory.length; ++gamePosition) {
+		if (gamePaused) {
+			gameRunning = false;
+			break;
+		}
+		ready = 1;
+		makeMove(gameBoard, gameHistory[gamePosition]);
+		loadBoard(gameBoard);
+		await new Promise(r => setTimeout(r, gameDelay));
+	}
+	gamePaused = true;
+	document.getElementById('play').innerHTML = '►';
+	if (gameRunning)
+		document.querySelector('.title').innerHTML = RESULTS[gameResult];
+	gameRunning = false;
+}
+
+function play() {
+	gamePaused = !gamePaused;
+	let icon = gamePaused ? '►' : '❚❚';
+	document.getElementById('play').innerHTML = icon;
+	if (!gameRunning)
+		run();
+}
+
+function prev() {
+	if (gameRunning || gamePosition == 0)
+		return;
+	undoMove(gameBoard, gameHistory[--gamePosition]);
+	loadBoard(gameBoard);
+}
+
+function next() {
+	if (gameRunning || gamePosition == gameHistory.length)
+		return;
+	makeMove(gameBoard, gameHistory[gamePosition++]);
+	loadBoard(gameBoard);
+}
+
+function speed() {
+	if (gameDelay > 4)
+		gameDelay /= 2;
+	document.getElementById('speedText').innerHTML
+		= 'speed: ' + (12-Math.log2(gameDelay));
+}
+
+function slow() {
+	if (gameDelay*2 <= maxDelay)
+		gameDelay *= 2;
+	document.getElementById('speedText').innerHTML
+		= 'speed: ' + (12-Math.log2(gameDelay));
+}
+
+function main() {
+	reset();
+}
+
+main();
