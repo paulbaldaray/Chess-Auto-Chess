@@ -4,8 +4,8 @@ body {
 
 #board {
 	margin: auto;
-	height: 35vw;
-	width: 35vw;
+	height: 70vmin;
+	width: 70vmin;
 }
 
 #border {
@@ -17,8 +17,8 @@ body {
 #title {
 	margin: 1% auto 2% auto;
 	text-align: center;
-	font-size: 2vw;
-	height: 2vw;
+	font-size: 4vmin;
+	height: 4vmin;
 }
 
 .square {
@@ -45,9 +45,9 @@ button {
 	height: 100%;
 	margin: .1% .2% 0 .2%;
 	float: left;
-	font-size: .9vw;
+	font-size: 1.8vmin;
   background-color: #555;
-	border: .3vw solid #444;
+	border: .6vmin solid #444;
 }
 
 button:hover {
@@ -55,13 +55,13 @@ button:hover {
 }
 
 #speedText {
-	border: .3vw solid #333;
+	border: .6vmin solid #333;
 	height: 70%;
 	width: 20%;
 	float: left;
 	padding-bottom: .5%;
 	margin-left: 1.8%;
-	font-size: .9vw;
+	font-size: 1.8vmin;
 	text-align: center;
   background-color: #444;
 	color: #fff;
@@ -69,13 +69,13 @@ button:hover {
 
 .selector {
 	float: left;
-	width: 2.5vw;
-	height: 2.5vw;
+	width: 5vmin;
+	height: 5vmin;
 }
 
 .selector:hover {
-	width: 3.5vw;
-	height: 3.5vw;
+	width: 7vmin;
+	height: 7vmin;
 }
 img {
 	display: none;
