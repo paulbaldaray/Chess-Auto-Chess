@@ -169,6 +169,8 @@ function isDraw(board) {
 			case EMPTY: continue;
 			default: return false;
 		}
+	if (!pieces[0][0] || !pieces[1][0])
+		return true;
 	for (let w = 0; w < 2; ++w)
 		if ((pieces[w][0] > 1 && (pieces[w^1][1] || pieces[w^1][2]))
 				|| (pieces[w][1] > 2 || pieces[w][2] > 1)

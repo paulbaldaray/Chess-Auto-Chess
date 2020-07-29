@@ -2,13 +2,13 @@
 
 <head>
 <meta charset="UTF-8"> 
-<title>Chess AutoChess</title>
+<title>Chess Auto Chess</title>
 <link rel="stylesheet" type="text/css" href="chess.css">
 </head>
 
 <body>
+<h3 id="title"></h3>
 <div id="board">
-	<h3 id="title"></h3>
 	<div id="border">
 		<script>
 		for (let r = 7, x = 0; r >= 0; --r, x ^= 1) for (c = 0; c < 8; ++c, x ^= 1) {
@@ -21,25 +21,28 @@
 			document.getElementById('border').appendChild(tile);
 		}</script>
 	</div>
-	<button onclick="reset()">⟳</button>
-	<button onclick="prev()">🡄</button>
-	<button id="play" onclick="play()">►</button>
-	<button onclick="next()">🡆</button>
-	<button onclick="speed()">▲</button>
-	<button onclick="slow()">▼</button>
-	<span id="speedText">speed: 5</span>
-	<br/><br/>
-	<script>
-	const id = ['EMPTY', 'WP', 'WN', 'WB', 'WR', 'WQ',
-		'WK', 'BP', 'BN', 'BB', 'BR', 'BQ', 'BK'];
-	for (let i = 0; i <= 12; ++i) {
-		let selector = document.createElement('img');
-		selector.className = 'selector';
-		selector.id = id[i];
-		selector.src = `img/${id[i]}.png`;
-		document.getElementById('board').appendChild(selector);
-	}
-	</script>
+	<div class="bar-div">
+		<button onclick="reset()">⟳</button>
+		<button onclick="prev()">🡄</button>
+		<button id="play" onclick="play()">►</button>
+		<button onclick="next()">🡆</button>
+		<button onclick="speed()">▲</button>
+		<button onclick="slow()">▼</button>
+		<span class="first-bar" id="speedText">speed: 5</span>
+	</div>
+	<div class="bar-div" id="selector-bar">
+		<script>
+		const id = ['EMPTY', 'WP', 'WN', 'WB', 'WR', 'WQ',
+			'WK', 'BP', 'BN', 'BB', 'BR', 'BQ', 'BK'];
+		for (let i = 0; i <= 12; ++i) {
+			let selector = document.createElement('img');
+			selector.className = 'selector';
+			selector.id = id[i];
+			selector.src = `img/${id[i]}.png`;
+			document.getElementById('selector-bar').appendChild(selector);
+		}
+		</script>
+	</div>
 </div>
 <script src="chess.js"></script>
 </body>
