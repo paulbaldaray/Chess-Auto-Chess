@@ -1,7 +1,7 @@
 #board {
 	margin: auto;
-	height: 40vw;
-	width: 40vw;
+	height: 35vw;
+	width: 35vw;
 }
 
 #border {
@@ -11,7 +11,7 @@
 }
 
 #title {
-	margin: 3% auto;
+	margin: 1% auto 2% auto;
 	text-align: center;
 	font-size: 3vw;
 	height: 3vw;
@@ -41,7 +41,7 @@ button {
 	height: 100%;
 	margin: .1% .2% 0 .2%;
 	float: left;
-	font-size: 1.2vw;
+	font-size: .9vw;
   background-color: #555;
 	border: .3vw solid #444;
 }
@@ -57,7 +57,7 @@ button:hover {
 	float: left;
 	padding-bottom: .5%;
 	margin-left: 1.8%;
-	font-size: 1.2vw;
+	font-size: .9vw;
 	text-align: center;
   background-color: #444;
 	color: #fff;
@@ -65,13 +65,13 @@ button:hover {
 
 .selector {
 	float: left;
-	width: 2.9vw;
-	height: 2.9vw;
+	width: 2.5vw;
+	height: 2.5vw;
 }
 
 .selector:hover {
-	width: 4vw;
-	height: 4vw;
+	width: 3.5vw;
+	height: 3.5vw;
 }
 img {
 	display: none;
